@@ -50,3 +50,9 @@ func parse(input:String)->SExpr{
     let (s, _) = readFrom(tokens: tokenize(input: input), startIndex:0)
     return s
 }
+
+class Environment{}
+
+func eval(sexpr:SExpr, env:Environment)->SExpr{
+    return .Number(50)
+}

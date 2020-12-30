@@ -42,6 +42,12 @@ final class LiswTests: XCTestCase {
         // proc
     }
 
+    func testEval(){
+        XCTContext.runActivity(named: "number"){ _ in
+            let actual = eval(sexpr: .Number(50), env:Environment())
+            XCTAssertEqual(actual, .Number(50))
+        }
+    }
 //    static var allTests = [
 //        ("testExample", testExample),
 //    ]
