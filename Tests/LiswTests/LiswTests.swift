@@ -39,9 +39,17 @@ final class LiswTests: XCTestCase {
     }
 
     func testEval(){
+        XCTContext.runActivity(named: "symbol"){ _ in
+            let (actual, _) = eval(sexpr: .Symbol("a"), env:global)
+            XCTAssertEqual(actual, .None)
+        }
         XCTContext.runActivity(named: "number"){ _ in
             let (actual, _) = eval(sexpr: .Number(50), env:global)
             XCTAssertEqual(actual, .Number(50))
+        }
+        XCTContext.runActivity(named: "quote"){ _ in
+            let (actual, _) = eval(sexpr: parse(input: "(quote (a b c))"), env:global)
+            XCTAssertEqual(actual, .List([.Symbol("a"), .Symbol("b"), .Symbol("c")]))
         }
         XCTContext.runActivity(named: "begin"){ _ in
             let (actual, _) = eval(sexpr: parse(input: "(begin 1 2)"), env: global)

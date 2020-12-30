@@ -19,11 +19,11 @@ func tokenize(input:String)->[String]{
 }
 
 func readFrom(tokens:[String], startIndex: Int)->(s:SExpr, index:Int){
-    print("readFrom(\(tokens), \(startIndex))")
+//    print("readFrom(\(tokens), \(startIndex))")
     precondition(!tokens.isEmpty)
     
     let token = tokens[startIndex]
-    print("token:\(token)")
+//    print("token:\(token)")
     switch token {
     case "(":
         var stack = [SExpr]()
@@ -32,6 +32,7 @@ func readFrom(tokens:[String], startIndex: Int)->(s:SExpr, index:Int){
         while tokens[index] != ")" {
             let (s, i) = readFrom(tokens: tokens, startIndex: index)
             stack.append(s)
+//            print("stack:\(stack)")
             index = i
         }
         return (.List(stack), index + 1)
@@ -41,7 +42,7 @@ func readFrom(tokens:[String], startIndex: Int)->(s:SExpr, index:Int){
 }
 
 func atom(token:String)->SExpr{
-    print("atom(\(token))")
+//    print("atom(\(token))")
     if let num = Double(token) {
         return .Number(num)
     } else {
@@ -64,7 +65,11 @@ class Environment {
     
     subscript(key:String)->SExpr{
         get {
-            return dictionary[key]!
+            if let value = dictionary[key] {
+                return value
+            } else {
+                return .None
+            }
         }
         set {
             dictionary[key] = newValue
@@ -77,7 +82,7 @@ class Environment {
 }
 
 func eval(sexpr:SExpr, env:Environment)->(result:SExpr, env:Environment){
-    print("eval(\(sexpr), \(env.description))")
+//    print("eval(\(sexpr), \(env.description))")
     var result:SExpr = .None
     switch sexpr {
     case .Symbol(let symbol):
@@ -85,7 +90,10 @@ func eval(sexpr:SExpr, env:Environment)->(result:SExpr, env:Environment){
     case .Number(_):
         return (sexpr, env)
     case let .List(list):
+//        print("list:\(list)")
         switch list[0] {
+        case .Symbol("quote"):
+            return (list[1], env)
         case .Symbol("define"):
             var key:String
             var value:SExpr
