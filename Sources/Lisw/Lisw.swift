@@ -11,5 +11,9 @@ func tokenize(input:String)->[String]{
 }
 
 func readFrom(tokens:[String])->SExpr{
-    return .Number(20)
+    return .Number(Double(tokens[0])!)
+}
+
+func parse(input:String)->SExpr{
+    return readFrom(tokens: tokenize(input: input))
 }
