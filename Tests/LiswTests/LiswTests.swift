@@ -3,8 +3,18 @@ import XCTest
 
 final class LiswTests: XCTestCase {
     func testTokenize(){
-        let actual = tokenize(input:"1")
-        XCTAssertEqual(actual, "1")
+        // var
+        XCTContext.runActivity(named: "number"){ _ in
+            let actual = tokenize(input: "10")
+            XCTAssertEqual(actual, "10")
+        }
+        // quote
+        // if
+        // set!
+        // define
+        // lambda
+        // begin
+        // proc
     }
 
 //    static var allTests = [
