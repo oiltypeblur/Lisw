@@ -18,7 +18,10 @@ final class LiswTests: XCTestCase {
     }
     
     func testParse(){
-        // var
+        XCTContext.runActivity(named: "var"){ _ in
+            let actual = parse(input:"x")
+            XCTAssertEqual(actual, .Symbol("x"))
+        }
         XCTContext.runActivity(named: "number"){ _ in
             let actual = parse(input:"30")
             XCTAssertEqual(actual, .Number(30))
