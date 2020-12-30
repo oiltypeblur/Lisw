@@ -7,6 +7,7 @@ enum SExpr : Equatable {
     case Symbol(String)
     case Number(Double)
     case List([SExpr])
+    case None
 }
 
 func tokenize(input:String)->[String]{
@@ -54,5 +55,22 @@ func parse(input:String)->SExpr{
 class Environment{}
 
 func eval(sexpr:SExpr, env:Environment)->SExpr{
-    return .Number(50)
+    //print("eval(\(sexpr))")
+    switch sexpr {
+    case .Number(_):
+        return sexpr
+    case let .List(list):
+        switch list[0] {
+        case .Symbol("begin"):
+            var tmp:SExpr = .None
+            for i in 1..<list.count {
+                tmp = eval(sexpr: list[i], env: env)
+            }
+            return tmp
+        default:
+            fatalError()
+        }
+    default:
+        fatalError()
+    }
 }

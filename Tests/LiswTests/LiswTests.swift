@@ -2,6 +2,8 @@ import XCTest
 @testable import Lisw
 
 final class LiswTests: XCTestCase {
+    let global = Environment()
+
     func testTokenize(){
         var actual = tokenize(input: "10")
         XCTAssertEqual(actual, ["10"])
@@ -34,18 +36,16 @@ final class LiswTests: XCTestCase {
             let actual = parse(input: "(if (< 10 20) 1 2)")
             XCTAssertEqual(actual, .List([.Symbol("if"), .List([.Symbol("<"), .Number(10), .Number(20)]), .Number(1), .Number(2)]))
         }
-        // if
-        // set!
-        // define
-        // lambda
-        // begin
-        // proc
     }
 
     func testEval(){
         XCTContext.runActivity(named: "number"){ _ in
-            let actual = eval(sexpr: .Number(50), env:Environment())
+            let actual = eval(sexpr: .Number(50), env:global)
             XCTAssertEqual(actual, .Number(50))
+        }
+        XCTContext.runActivity(named: "begin"){ _ in
+            let actual = eval(sexpr: parse(input: "(begin 1 2)"), env: global)
+            XCTAssertEqual(actual, .Number(2))
         }
     }
 //    static var allTests = [
