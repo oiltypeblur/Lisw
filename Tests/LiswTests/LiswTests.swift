@@ -2,7 +2,7 @@ import XCTest
 @testable import Lisw
 
 final class LiswTests: XCTestCase {
-    let global = Environment()
+    let global = Environment(outer:nil)
 
     func testTokenize(){
         var actual = tokenize(input: "10")
@@ -40,12 +40,17 @@ final class LiswTests: XCTestCase {
 
     func testEval(){
         XCTContext.runActivity(named: "number"){ _ in
-            let actual = eval(sexpr: .Number(50), env:global)
+            let (actual, _) = eval(sexpr: .Number(50), env:global)
             XCTAssertEqual(actual, .Number(50))
         }
         XCTContext.runActivity(named: "begin"){ _ in
-            let actual = eval(sexpr: parse(input: "(begin 1 2)"), env: global)
+            let (actual, _) = eval(sexpr: parse(input: "(begin 1 2)"), env: global)
             XCTAssertEqual(actual, .Number(2))
+
+        }
+        XCTContext.runActivity(named: "define"){ _ in
+            let (actual, _) = eval(sexpr: parse(input: "(begin (define x 60) x)"), env: global)
+            XCTAssertEqual(actual, .Number(60))
         }
     }
 //    static var allTests = [

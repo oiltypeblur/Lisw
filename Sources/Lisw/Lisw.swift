@@ -19,10 +19,11 @@ func tokenize(input:String)->[String]{
 }
 
 func readFrom(tokens:[String], startIndex: Int)->(s:SExpr, index:Int){
-    //print("readFrom(\(tokens), \(startIndex))")
+    print("readFrom(\(tokens), \(startIndex))")
     precondition(!tokens.isEmpty)
     
     let token = tokens[startIndex]
+    print("token:\(token)")
     switch token {
     case "(":
         var stack = [SExpr]()
@@ -40,6 +41,7 @@ func readFrom(tokens:[String], startIndex: Int)->(s:SExpr, index:Int){
 }
 
 func atom(token:String)->SExpr{
+    print("atom(\(token))")
     if let num = Double(token) {
         return .Number(num)
     } else {
@@ -52,21 +54,57 @@ func parse(input:String)->SExpr{
     return s
 }
 
-class Environment{}
+class Environment {
+    var dictionary = [String:SExpr]()
+    let outer:Environment?
+    
+    init(outer:Environment?) {
+        self.outer = outer
+    }
+    
+    subscript(key:String)->SExpr{
+        get {
+            return dictionary[key]!
+        }
+        set {
+            dictionary[key] = newValue
+        }
+    }
+    
+    var description:String {
+        return dictionary.description
+    }
+}
 
-func eval(sexpr:SExpr, env:Environment)->SExpr{
-    //print("eval(\(sexpr))")
+func eval(sexpr:SExpr, env:Environment)->(result:SExpr, env:Environment){
+    print("eval(\(sexpr), \(env.description))")
+    var result:SExpr = .None
     switch sexpr {
+    case .Symbol(let symbol):
+        return (env[symbol], env)
     case .Number(_):
-        return sexpr
+        return (sexpr, env)
     case let .List(list):
         switch list[0] {
-        case .Symbol("begin"):
-            var tmp:SExpr = .None
-            for i in 1..<list.count {
-                tmp = eval(sexpr: list[i], env: env)
+        case .Symbol("define"):
+            var key:String
+            var value:SExpr
+            switch list[1] {
+            case .Symbol(let tmp):
+                key = tmp
+            default:
+                fatalError()
             }
-            return tmp
+            (value, _) = eval(sexpr:list[2], env: env)
+            let newEnv = env
+            newEnv[key] = value
+            return (.None, newEnv)
+        case .Symbol("begin"):
+            var newEnv = env
+            for i in 1..<list.count {
+                (result, newEnv) = eval(sexpr: list[i], env: env)
+            }
+            return (result, newEnv)
         default:
             fatalError()
         }
