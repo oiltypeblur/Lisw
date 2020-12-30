@@ -12,7 +12,7 @@ final class LiswTests: XCTestCase {
     
     func testReadFrom(){
         XCTContext.runActivity(named: "number"){ _ in
-            let actual = readFrom(tokens: ["20"], startIndex:0)
+            let (actual, _) = readFrom(tokens: ["20"], startIndex:0)
             XCTAssertEqual(actual, .Number(20))
         }
     }
@@ -26,10 +26,13 @@ final class LiswTests: XCTestCase {
             let actual = parse(input:"30")
             XCTAssertEqual(actual, .Number(30))
         }
-        // quote
         XCTContext.runActivity(named: "quote"){ _ in
             let actual = parse(input:"(quote 40)")
             XCTAssertEqual(actual, .List([.Symbol("quote"), .Number(40)]))
+        }
+        XCTContext.runActivity(named: "conditionals"){ _ in
+            let actual = parse(input: "(if (< 10 20) 1 2)")
+            XCTAssertEqual(actual, .List([.Symbol("if"), .List([.Symbol("<"), .Number(10), .Number(20)]), .Number(1), .Number(2)]))
         }
         // if
         // set!

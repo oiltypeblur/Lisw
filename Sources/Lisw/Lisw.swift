@@ -12,24 +12,29 @@ enum SExpr : Equatable {
 func tokenize(input:String)->[String]{
     var tmp = input.replacingOccurrences(of: "(", with: " ( ")
     tmp = tmp.replacingOccurrences(of: ")", with: " ) ")
+    tmp = tmp.replacingOccurrences(of: "  ", with: " ")
     tmp = tmp.trimmingCharacters(in: .whitespaces)
     return tmp.components(separatedBy: " ")
 }
 
-func readFrom(tokens:[String], startIndex: Int)->SExpr{
+func readFrom(tokens:[String], startIndex: Int)->(s:SExpr, index:Int){
+    //print("readFrom(\(tokens), \(startIndex))")
     precondition(!tokens.isEmpty)
     
-    switch tokens[startIndex] {
+    let token = tokens[startIndex]
+    switch token {
     case "(":
         var stack = [SExpr]()
+        
         var index = startIndex + 1
         while tokens[index] != ")" {
-            stack.append(readFrom(tokens: tokens, startIndex: index))
-            index += 1
+            let (s, i) = readFrom(tokens: tokens, startIndex: index)
+            stack.append(s)
+            index = i
         }
-        return .List(stack)
+        return (.List(stack), index + 1)
     default:
-        return atom(token:tokens[startIndex])
+        return (atom(token:token), startIndex + 1)
     }
 }
 
@@ -42,5 +47,6 @@ func atom(token:String)->SExpr{
 }
 
 func parse(input:String)->SExpr{
-    return readFrom(tokens: tokenize(input: input), startIndex:0)
+    let (s, _) = readFrom(tokens: tokenize(input: input), startIndex:0)
+    return s
 }
