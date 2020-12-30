@@ -6,7 +6,7 @@ final class LiswTests: XCTestCase {
         // var
         XCTContext.runActivity(named: "number"){ _ in
             let actual = tokenize(input: "10")
-            XCTAssertEqual(actual, "10")
+            XCTAssertEqual(actual, ["10"])
         }
         // quote
         // if
@@ -15,6 +15,14 @@ final class LiswTests: XCTestCase {
         // lambda
         // begin
         // proc
+    }
+    
+    func testReadFrom(){
+        // var
+        XCTContext.runActivity(named: "number"){_ in
+            let actual = readFrom(tokens: ["20"])
+            XCTAssertEqual(actual, .Number(20))
+        }
     }
 
 //    static var allTests = [
