@@ -173,6 +173,18 @@ func eval(sexpr:SExpr, env:Environment)->(result:SExpr, env:Environment){
             } else {
                 return eval(sexpr: alt, env: newEnv)
             }
+        case .Symbol("set!"):
+            let valueName = list[1]
+            let newValue = list[2]
+            if case let .Symbol(tmp) = valueName {
+                if env[tmp] == .None {
+                    fatalError()
+                }
+                env[tmp] = newValue
+                return (.None, env)
+            } else {
+                fatalError()
+            }
         case .Symbol("define"):
             var key:String
             var value:SExpr
