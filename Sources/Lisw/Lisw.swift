@@ -1,7 +1,4 @@
 import Foundation
-struct Lisw {
-    var text = "Hello, World!"
-}
 
 enum SExpr : CustomStringConvertible, Equatable {
     static func == (lhs: SExpr, rhs: SExpr) -> Bool {
