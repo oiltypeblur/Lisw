@@ -49,14 +49,20 @@ final class LiswTests: XCTestCase {
             let (actual, _) = eval(sexpr: parse(input: "(quote (a b c))"), env:global())
             XCTAssertEqual(actual, .List([.Symbol("a"), .Symbol("b"), .Symbol("c")]))
         }
+        XCTContext.runActivity(named: "if"){ _ in
+            let (actual, _) = eval(sexpr: parse(input: "(if (< 10 20) 1 2)"), env:global())
+            XCTAssertEqual(actual, .Number(1))
+        }
+        // set!
+        XCTContext.runActivity(named: "define"){ _ in
+            let (actual, _) = eval(sexpr: parse(input: "(begin (define x 60) x)"), env: global())
+            XCTAssertEqual(actual, .Number(60))
+        }
+        // lambda
         XCTContext.runActivity(named: "begin"){ _ in
             let (actual, _) = eval(sexpr: parse(input: "(begin 1 2)"), env: global())
             XCTAssertEqual(actual, .Number(2))
 
-        }
-        XCTContext.runActivity(named: "define"){ _ in
-            let (actual, _) = eval(sexpr: parse(input: "(begin (define x 60) x)"), env: global())
-            XCTAssertEqual(actual, .Number(60))
         }
         XCTContext.runActivity(named: "procedure calls"){ _ in
             let (actual, _) = eval(sexpr: parse(input: "(+ 1 2)"), env: global())

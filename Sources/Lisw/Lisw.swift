@@ -11,6 +11,8 @@ enum SExpr : CustomStringConvertible, Equatable {
             return l == r
         case let (.Number(l), .Number(r)):
             return l == r
+        case let (.Boolean(l), .Boolean(r)):
+            return l == r
         case let (.List(l), .List(r)):
             return l == r
         case (.None, .None):
@@ -19,9 +21,10 @@ enum SExpr : CustomStringConvertible, Equatable {
             return false
         }
     }
-    
+
     case Symbol(String)
     case Number(Double)
+    case Boolean(Bool)
     case List([SExpr])
     case Procedure(([SExpr]) -> SExpr)
     case None
@@ -32,6 +35,8 @@ enum SExpr : CustomStringConvertible, Equatable {
             return s
         case .Number(let d):
             return String(d)
+        case .Boolean(let b):
+            return String(b)
         case .List(let l):
             return l.description
         case .Procedure(_):
@@ -128,16 +133,26 @@ func plus(args:[SExpr]) -> SExpr {
     return .Number(result)
 }
 
+func lessThan(args:[SExpr]) -> SExpr {
+    switch (args[0], args[1]) {
+    case let (.Number(left), .Number(right)):
+        return .Boolean(left < right)
+    default:
+        fatalError()
+    }
+}
+
 func global() -> Environment {
     let env = Environment(outer: nil)
     
     env["+"] = .Procedure(plus)
+    env["<"] = .Procedure(lessThan)
 
     return env
 }
 
 func eval(sexpr:SExpr, env:Environment)->(result:SExpr, env:Environment){
-    // print("eval(\(sexpr), \(env.description))")
+//    print("eval(\(sexpr), \(env.description))")
     var result:SExpr = .None
     switch sexpr {
     case .Symbol(let symbol):
@@ -145,10 +160,19 @@ func eval(sexpr:SExpr, env:Environment)->(result:SExpr, env:Environment){
     case .Number(_):
         return (sexpr, env)
     case let .List(list):
-        // print("list:\(list)")
         switch list[0] {
         case .Symbol("quote"):
             return (list[1], env)
+        case .Symbol("if"):
+            let test = list[1]
+            let conseq = list[2]
+            let alt = list[3]
+            let (b, newEnv) = eval(sexpr: test, env: env)
+            if b == .Boolean(true) {
+                return eval(sexpr: conseq, env: newEnv)
+            } else {
+                return eval(sexpr: alt, env: newEnv)
+            }
         case .Symbol("define"):
             var key:String
             var value:SExpr
