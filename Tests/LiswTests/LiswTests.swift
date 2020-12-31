@@ -39,7 +39,7 @@ final class LiswTests: XCTestCase {
     func testEval(){
         XCTContext.runActivity(named: "symbol"){ _ in
             let (actual, _) = eval(sexpr: .Symbol("a"), env:global())
-            XCTAssertEqual(actual, .None)
+            XCTAssertEqual(actual, nil)
         }
         XCTContext.runActivity(named: "number"){ _ in
             let (actual, _) = eval(sexpr: .Number(50), env:global())

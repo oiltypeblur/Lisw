@@ -14,8 +14,6 @@ enum SExpr : CustomStringConvertible, Equatable {
             return l == r
         case let (.List(l), .List(r)):
             return l == r
-        case (.None, .None):
-            return true
         default:
             return false
         }
@@ -24,9 +22,8 @@ enum SExpr : CustomStringConvertible, Equatable {
     case Symbol(String)
     case Number(Double)
     case Boolean(Bool)
-    case List([SExpr])
-    case Procedure(([SExpr]) -> SExpr)
-    case None
+    indirect case List([SExpr])
+    indirect case Procedure(([SExpr]) -> SExpr)
     
     var description: String {
         switch self {
@@ -40,8 +37,6 @@ enum SExpr : CustomStringConvertible, Equatable {
             return l.description
         case .Procedure(_):
             return "func"
-        case .None:
-            return "None"
         }
     }
 }
@@ -64,7 +59,6 @@ func readFrom(tokens:[String], startIndex: Int)->(s:SExpr, index:Int){
     switch token {
     case "(":
         var stack = [SExpr]()
-        
         var index = startIndex + 1
         while tokens[index] != ")" {
             let (s, i) = readFrom(tokens: tokens, startIndex: index)
@@ -98,14 +92,9 @@ class Environment : CustomStringConvertible {
         self.outer = outer
     }
     
-    subscript(key:String)->SExpr{
+    subscript(key:String)->SExpr?{
         get {
-            if let value = dictionary[key] {
-                return value
-            } else {
-                debugPrint("\(key) is not registered")
-                return .None
-            }
+            return dictionary[key]
         }
         set {
             dictionary[key] = newValue
@@ -132,12 +121,16 @@ func plus(args:[SExpr]) -> SExpr {
 }
 
 func lessThan(args:[SExpr]) -> SExpr {
-    switch (args[0], args[1]) {
-    case let (.Number(left), .Number(right)):
-        return .Boolean(left < right)
-    default:
+    precondition(args.count == 2)
+    
+    guard case let .Number(first) = args[0] else {
         fatalError()
     }
+    guard case let .Number(second) = args[1] else {
+        fatalError()
+    }
+    
+    return .Boolean(first < second)
 }
 
 func global() -> Environment {
@@ -149,9 +142,10 @@ func global() -> Environment {
     return env
 }
 
-func eval(sexpr:SExpr, env:Environment)->(result:SExpr, env:Environment){
+func eval(sexpr:SExpr, env:Environment) -> (result:SExpr?, env:Environment) {
 //    print("eval(\(sexpr), \(env.description))")
-    var result:SExpr = .None
+    var result:SExpr?
+    
     switch sexpr {
     case .Symbol(let symbol):
         return (env[symbol], env)
@@ -162,6 +156,7 @@ func eval(sexpr:SExpr, env:Environment)->(result:SExpr, env:Environment){
         case .Symbol("quote"):
             return (list[1], env)
         case .Symbol("if"):
+            precondition(list.count == 4)
             let test = list[1]
             let conseq = list[2]
             let alt = list[3]
@@ -172,70 +167,59 @@ func eval(sexpr:SExpr, env:Environment)->(result:SExpr, env:Environment){
                 return eval(sexpr: alt, env: newEnv)
             }
         case .Symbol("set!"):
-            let valueName = list[1]
-            let newValue = list[2]
-            if case let .Symbol(tmp) = valueName {
-                if env[tmp] == .None {
-                    fatalError()
-                }
-                env[tmp] = newValue
-                return (.None, env)
-            } else {
+            precondition(list.count == 3)
+            guard case let .Symbol(valueName) = list[1] else {
                 fatalError()
             }
+            if env[valueName] == nil {
+                fatalError()
+            }
+            env[valueName] = list[2]
+            return (nil, env)
         case .Symbol("define"):
-            var key:String
-            var value:SExpr
-            switch list[1] {
-            case .Symbol(let tmp):
-                key = tmp
-            default:
+            precondition(list.count == 3)
+            guard case let .Symbol(key) = list[1] else {
                 fatalError()
             }
-            (value, _) = eval(sexpr:list[2], env: env)
-            let newEnv = env
+            let (value, newEnv) = eval(sexpr:list[2], env: env)
             newEnv[key] = value
-            return (.None, newEnv)
+            return (nil, newEnv)
         case .Symbol("lambda"):
-            let tmp = list[1]
-            if case let .List(vars) = tmp {
-                let exp = list[2]
-                return (.Procedure({(args:[SExpr]) -> SExpr in
-                    for index in 0..<vars.count  {
-                        if case let .Symbol(key) = vars[index] {
-                            env[key] = args[index]
-                        } else {
-                            fatalError()
-                            
-                        }
-                    }
-                    let (result, _) = eval(sexpr: exp, env: env)
-                    return result
-                }),
-                env)
-            } else {
+            precondition(list.count == 3)
+            guard case let .List(vars) = list[1] else {
                 fatalError()
             }
+            let exp = list[2]
+            return (.Procedure({(args:[SExpr]) -> SExpr in
+                for index in 0..<vars.count  {
+                    if case let .Symbol(key) = vars[index] {
+                        env[key] = args[index]
+                    } else {
+                        fatalError()
+                    }
+                }
+                let (result, _) = eval(sexpr: exp, env: env)
+                return result!
+            }), env)
         case .Symbol("begin"):
             var newEnv = env
             for i in 1..<list.count {
-                (result, newEnv) = eval(sexpr: list[i], env: env)
+                (result, newEnv) = eval(sexpr: list[i], env: newEnv)
             }
             return (result, newEnv)
         default:
+            // procedure call
             var exps = [SExpr]()
             var newEnv = env
             for l in list {
-                var exp:SExpr = .None
+                var exp:SExpr?
                 (exp, newEnv) = eval(sexpr: l, env: newEnv)
-                exps.append(exp)
+                exps.append(exp!)
             }
-            switch exps.first {
-            case .Procedure(let f):
-                return (f(Array(exps[1...])), newEnv)
-            default:
+            guard case let .Procedure(f) = exps.first else {
                 fatalError()
             }
+            return (f(Array(exps[1...])), newEnv)
         }
     default:
         fatalError()
