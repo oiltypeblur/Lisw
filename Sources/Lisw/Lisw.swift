@@ -5,7 +5,6 @@ struct Lisw {
 
 enum SExpr : CustomStringConvertible, Equatable {
     static func == (lhs: SExpr, rhs: SExpr) -> Bool {
-        // print("==(\(lhs), \(rhs))")
         switch (lhs, rhs) {
         case let (.Symbol(l), .Symbol(r)):
             return l == r
@@ -50,6 +49,8 @@ enum SExpr : CustomStringConvertible, Equatable {
 func tokenize(input:String)->[String]{
     var tmp = input.replacingOccurrences(of: "(", with: " ( ")
     tmp = tmp.replacingOccurrences(of: ")", with: " ) ")
+    // TODO bad
+    tmp = tmp.replacingOccurrences(of: "  ", with: " ")
     tmp = tmp.replacingOccurrences(of: "  ", with: " ")
     tmp = tmp.trimmingCharacters(in: .whitespaces)
     return tmp.components(separatedBy: " ")
@@ -60,7 +61,6 @@ func readFrom(tokens:[String], startIndex: Int)->(s:SExpr, index:Int){
     precondition(!tokens.isEmpty)
     
     let token = tokens[startIndex]
-//    print("token:\(token)")
     switch token {
     case "(":
         var stack = [SExpr]()
@@ -69,7 +69,6 @@ func readFrom(tokens:[String], startIndex: Int)->(s:SExpr, index:Int){
         while tokens[index] != ")" {
             let (s, i) = readFrom(tokens: tokens, startIndex: index)
             stack.append(s)
-//            print("stack:\(stack)")
             index = i
         }
         return (.List(stack), index + 1)
@@ -79,7 +78,6 @@ func readFrom(tokens:[String], startIndex: Int)->(s:SExpr, index:Int){
 }
 
 func atom(token:String)->SExpr{
-//    print("atom(\(token))")
     if let num = Double(token) {
         return .Number(num)
     } else {
@@ -198,6 +196,26 @@ func eval(sexpr:SExpr, env:Environment)->(result:SExpr, env:Environment){
             let newEnv = env
             newEnv[key] = value
             return (.None, newEnv)
+        case .Symbol("lambda"):
+            let tmp = list[1]
+            if case let .List(vars) = tmp {
+                let exp = list[2]
+                return (.Procedure({(args:[SExpr]) -> SExpr in
+                    for index in 0..<vars.count  {
+                        if case let .Symbol(key) = vars[index] {
+                            env[key] = args[index]
+                        } else {
+                            fatalError()
+                            
+                        }
+                    }
+                    let (result, _) = eval(sexpr: exp, env: env)
+                    return result
+                }),
+                env)
+            } else {
+                fatalError()
+            }
         case .Symbol("begin"):
             var newEnv = env
             for i in 1..<list.count {
@@ -212,7 +230,6 @@ func eval(sexpr:SExpr, env:Environment)->(result:SExpr, env:Environment){
                 (exp, newEnv) = eval(sexpr: l, env: newEnv)
                 exps.append(exp)
             }
-            // print("exps:\(exps)")
             switch exps.first {
             case .Procedure(let f):
                 return (f(Array(exps[1..<exps.count])), newEnv)

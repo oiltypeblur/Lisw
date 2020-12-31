@@ -61,7 +61,10 @@ final class LiswTests: XCTestCase {
             let (actual, _) = eval(sexpr: parse(input: "(begin (define x 60) x)"), env: global())
             XCTAssertEqual(actual, .Number(60))
         }
-        // lambda
+        XCTContext.runActivity(named: "lambda"){ _ in
+            let (actual, _) = eval(sexpr: parse(input: "(begin (define inc (lambda (arg) (+ arg 1))) (inc 90))"), env: global())
+            XCTAssertEqual(actual, .Number(91))
+        }
         XCTContext.runActivity(named: "begin"){ _ in
             let (actual, _) = eval(sexpr: parse(input: "(begin 1 2)"), env: global())
             XCTAssertEqual(actual, .Number(2))
