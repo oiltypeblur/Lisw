@@ -232,7 +232,7 @@ func eval(sexpr:SExpr, env:Environment)->(result:SExpr, env:Environment){
             }
             switch exps.first {
             case .Procedure(let f):
-                return (f(Array(exps[1..<exps.count])), newEnv)
+                return (f(Array(exps[1...])), newEnv)
             default:
                 fatalError()
             }
