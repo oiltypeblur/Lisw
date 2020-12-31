@@ -1,3 +1,9 @@
 # Lisw
 
-Simple lisp implemented by Swift.
+Simple lisp library implemented by Swift.
+
+## build
+swift build
+
+## test
+swift test
