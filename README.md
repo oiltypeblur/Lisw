@@ -1,3 +1,3 @@
 # Lisw
 
-A description of this package.
+Simple lisp implemented by Swift.
