@@ -2,8 +2,6 @@ import XCTest
 @testable import Lisw
 
 final class LiswTests: XCTestCase {
-    let global = Environment(outer:nil)
-
     func testTokenize(){
         var actual = tokenize(input: "10")
         XCTAssertEqual(actual, ["10"])
@@ -40,26 +38,31 @@ final class LiswTests: XCTestCase {
 
     func testEval(){
         XCTContext.runActivity(named: "symbol"){ _ in
-            let (actual, _) = eval(sexpr: .Symbol("a"), env:global)
+            let (actual, _) = eval(sexpr: .Symbol("a"), env:global())
             XCTAssertEqual(actual, .None)
         }
         XCTContext.runActivity(named: "number"){ _ in
-            let (actual, _) = eval(sexpr: .Number(50), env:global)
+            let (actual, _) = eval(sexpr: .Number(50), env:global())
             XCTAssertEqual(actual, .Number(50))
         }
         XCTContext.runActivity(named: "quote"){ _ in
-            let (actual, _) = eval(sexpr: parse(input: "(quote (a b c))"), env:global)
+            let (actual, _) = eval(sexpr: parse(input: "(quote (a b c))"), env:global())
             XCTAssertEqual(actual, .List([.Symbol("a"), .Symbol("b"), .Symbol("c")]))
         }
         XCTContext.runActivity(named: "begin"){ _ in
-            let (actual, _) = eval(sexpr: parse(input: "(begin 1 2)"), env: global)
+            let (actual, _) = eval(sexpr: parse(input: "(begin 1 2)"), env: global())
             XCTAssertEqual(actual, .Number(2))
 
         }
         XCTContext.runActivity(named: "define"){ _ in
-            let (actual, _) = eval(sexpr: parse(input: "(begin (define x 60) x)"), env: global)
+            let (actual, _) = eval(sexpr: parse(input: "(begin (define x 60) x)"), env: global())
             XCTAssertEqual(actual, .Number(60))
         }
+        XCTContext.runActivity(named: "procedure calls"){ _ in
+            let (actual, _) = eval(sexpr: parse(input: "(+ 1 2)"), env: global())
+            XCTAssertEqual(actual, .Number(3))
+        }
+        
     }
 //    static var allTests = [
 //        ("testExample", testExample),

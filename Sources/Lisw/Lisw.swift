@@ -3,11 +3,43 @@ struct Lisw {
     var text = "Hello, World!"
 }
 
-enum SExpr : Equatable {
+enum SExpr : CustomStringConvertible, Equatable {
+    static func == (lhs: SExpr, rhs: SExpr) -> Bool {
+        // print("==(\(lhs), \(rhs))")
+        switch (lhs, rhs) {
+        case let (.Symbol(l), .Symbol(r)):
+            return l == r
+        case let (.Number(l), .Number(r)):
+            return l == r
+        case let (.List(l), .List(r)):
+            return l == r
+        case (.None, .None):
+            return true
+        default:
+            return false
+        }
+    }
+    
     case Symbol(String)
     case Number(Double)
     case List([SExpr])
+    case Procedure(([SExpr]) -> SExpr)
     case None
+    
+    var description: String {
+        switch self {
+        case .Symbol(let s):
+            return s
+        case .Number(let d):
+            return String(d)
+        case .List(let l):
+            return l.description
+        case .Procedure(_):
+            return "func"
+        case .None:
+            return "None"
+        }
+    }
 }
 
 func tokenize(input:String)->[String]{
@@ -55,7 +87,7 @@ func parse(input:String)->SExpr{
     return s
 }
 
-class Environment {
+class Environment : CustomStringConvertible {
     var dictionary = [String:SExpr]()
     let outer:Environment?
     
@@ -68,6 +100,7 @@ class Environment {
             if let value = dictionary[key] {
                 return value
             } else {
+                debugPrint("\(key) is not registered")
                 return .None
             }
         }
@@ -81,8 +114,30 @@ class Environment {
     }
 }
 
+func plus(args:[SExpr]) -> SExpr {
+    var result:Double = 0
+    for arg in args {
+        switch arg {
+        case .Number(let d):
+            result += d
+        default:
+            fatalError()
+        }
+    }
+    
+    return .Number(result)
+}
+
+func global() -> Environment {
+    let env = Environment(outer: nil)
+    
+    env["+"] = .Procedure(plus)
+
+    return env
+}
+
 func eval(sexpr:SExpr, env:Environment)->(result:SExpr, env:Environment){
-//    print("eval(\(sexpr), \(env.description))")
+    // print("eval(\(sexpr), \(env.description))")
     var result:SExpr = .None
     switch sexpr {
     case .Symbol(let symbol):
@@ -90,7 +145,7 @@ func eval(sexpr:SExpr, env:Environment)->(result:SExpr, env:Environment){
     case .Number(_):
         return (sexpr, env)
     case let .List(list):
-//        print("list:\(list)")
+        // print("list:\(list)")
         switch list[0] {
         case .Symbol("quote"):
             return (list[1], env)
@@ -114,7 +169,20 @@ func eval(sexpr:SExpr, env:Environment)->(result:SExpr, env:Environment){
             }
             return (result, newEnv)
         default:
-            fatalError()
+            var exps = [SExpr]()
+            var newEnv = env
+            for l in list {
+                var exp:SExpr = .None
+                (exp, newEnv) = eval(sexpr: l, env: newEnv)
+                exps.append(exp)
+            }
+            // print("exps:\(exps)")
+            switch exps.first {
+            case .Procedure(let f):
+                return (f(Array(exps[1..<exps.count])), newEnv)
+            default:
+                fatalError()
+            }
         }
     default:
         fatalError()
