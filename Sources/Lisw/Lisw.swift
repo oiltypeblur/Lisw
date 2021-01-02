@@ -1,27 +1,14 @@
 import Foundation
 
-enum SExpr : CustomStringConvertible, Equatable {
-    static func == (lhs: SExpr, rhs: SExpr) -> Bool {
-        switch (lhs, rhs) {
-        case let (.Symbol(l), .Symbol(r)):
-            return l == r
-        case let (.Number(l), .Number(r)):
-            return l == r
-        case let (.Boolean(l), .Boolean(r)):
-            return l == r
-        case let (.List(l), .List(r)):
-            return l == r
-        default:
-            return false
-        }
-    }
-
+enum SExpr {
     case Symbol(String)
     case Number(Double)
     case Boolean(Bool)
     indirect case List([SExpr])
     indirect case Procedure(([SExpr]) -> SExpr)
-    
+}
+
+extension SExpr : CustomStringConvertible {
     var description: String {
         switch self {
         case .Symbol(let s):
@@ -38,6 +25,23 @@ enum SExpr : CustomStringConvertible, Equatable {
     }
 }
 
+extension SExpr : Equatable{
+    static func == (lhs: SExpr, rhs: SExpr) -> Bool {
+        switch (lhs, rhs) {
+        case let (.Symbol(l), .Symbol(r)):
+            return l == r
+        case let (.Number(l), .Number(r)):
+            return l == r
+        case let (.Boolean(l), .Boolean(r)):
+            return l == r
+        case let (.List(l), .List(r)):
+            return l == r
+        default:
+            return false
+        }
+    }
+}
+    
 func tokenize(input:String)->[String]{
     var tmp = input.replacingOccurrences(of: "(", with: " ( ")
     tmp = tmp.replacingOccurrences(of: ")", with: " ) ")
