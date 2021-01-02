@@ -206,23 +206,22 @@ func eval(sexpr:SExpr, env:Environment) -> (result:SExpr?, env:Environment) {
             }), env)
         case .Symbol("begin"):
             var newEnv = env
-            for i in 1..<list.count {
-                (result, newEnv) = eval(sexpr: list[i], env: newEnv)
+            _ = list.map(){ s in
+                (result, newEnv) = eval(sexpr: s, env: newEnv)
             }
             return (result, newEnv)
         default:
             // procedure call
-            var exps = [SExpr]()
             var newEnv = env
-            for l in list {
+            let exps = list.map() { s -> SExpr in
                 var exp:SExpr?
-                (exp, newEnv) = eval(sexpr: l, env: newEnv)
-                exps.append(exp!)
+                (exp, newEnv) = eval(sexpr: s, env: newEnv)
+                return exp!
             }
             guard case let .Procedure(f) = exps.first else {
                 fatalError()
             }
-            return (f(Array(exps[1...])), newEnv)
+            return (f(Array(exps.dropFirst())), newEnv)
         }
     default:
         fatalError()
