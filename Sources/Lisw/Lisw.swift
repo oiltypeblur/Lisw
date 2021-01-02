@@ -25,7 +25,7 @@ extension SExpr : CustomStringConvertible {
     }
 }
 
-extension SExpr : Equatable{
+extension SExpr : Equatable {
     static func == (lhs: SExpr, rhs: SExpr) -> Bool {
         switch (lhs, rhs) {
         case let (.Symbol(l), .Symbol(r)):
@@ -85,7 +85,7 @@ func parse(input:String)->SExpr{
     return s
 }
 
-class Environment : CustomStringConvertible {
+class Environment {
     var dictionary = [String:SExpr]()
     let outer:Environment?
     
@@ -101,7 +101,9 @@ class Environment : CustomStringConvertible {
             dictionary[key] = newValue
         }
     }
-    
+}
+
+extension Environment : CustomStringConvertible {
     var description:String {
         return dictionary.description
     }
