@@ -28,13 +28,13 @@ extension SExpr: CustomStringConvertible {
 extension SExpr: Equatable {
   static func == (lhs: SExpr, rhs: SExpr) -> Bool {
     switch (lhs, rhs) {
-    case let (.Symbol(l), .Symbol(r)):
+    case (let .Symbol(l), let .Symbol(r)):
       return l == r
-    case let (.Number(l), .Number(r)):
+    case (let .Number(l), let .Number(r)):
       return l == r
-    case let (.Boolean(l), .Boolean(r)):
+    case (let .Boolean(l), let .Boolean(r)):
       return l == r
-    case let (.List(l), .List(r)):
+    case (let .List(l), let .List(r)):
       return l == r
     default:
       return false
@@ -154,7 +154,7 @@ func eval(sexpr: SExpr, env: Environment) -> (result: SExpr?, env: Environment) 
     return (env[symbol], env)
   case .Number(_):
     return (sexpr, env)
-  case let .List(list):
+  case .List(let list):
     switch list[0] {
     case .Symbol("quote"):
       return (list[1], env)
