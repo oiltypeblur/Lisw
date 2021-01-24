@@ -1,6 +1,6 @@
 import Foundation
 
-enum SExpr {
+public enum SExpr {
   case Symbol(String)
   case Number(Double)
   case Boolean(Bool)
@@ -9,7 +9,7 @@ enum SExpr {
 }
 
 extension SExpr: CustomStringConvertible {
-  var description: String {
+    public var description: String {
     switch self {
     case .Symbol(let s):
       return s
@@ -26,7 +26,7 @@ extension SExpr: CustomStringConvertible {
 }
 
 extension SExpr: Equatable {
-  static func == (lhs: SExpr, rhs: SExpr) -> Bool {
+    public static func == (lhs: SExpr, rhs: SExpr) -> Bool {
     switch (lhs, rhs) {
     case (let .Symbol(l), let .Symbol(r)):
       return l == r
@@ -85,7 +85,7 @@ func parse(input: String) -> SExpr {
   return s
 }
 
-class Environment {
+public class Environment {
   var dictionary = [String: SExpr]()
   let outer: Environment?
 
@@ -104,7 +104,7 @@ class Environment {
 }
 
 extension Environment: CustomStringConvertible {
-  var description: String {
+    public var description: String {
     return dictionary.description
   }
 }
@@ -145,7 +145,7 @@ func global() -> Environment {
   return env
 }
 
-func eval(sexpr: SExpr, env: Environment) -> (result: SExpr?, env: Environment) {
+public func eval(sexpr: SExpr, env: Environment) -> (result: SExpr?, env: Environment) {
   //    print("eval(\(sexpr), \(env.description))")
   var result: SExpr?
 
