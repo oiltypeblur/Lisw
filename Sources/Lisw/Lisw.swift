@@ -1,5 +1,6 @@
 import Foundation
 
+/// S-Expression
 public enum SExpr {
   case Symbol(String)
   case Number(Double)
@@ -45,7 +46,7 @@ extension SExpr: Equatable {
 func tokenize(input: String) -> [String] {
   var tmp = input.replacingOccurrences(of: "(", with: " ( ")
   tmp = tmp.replacingOccurrences(of: ")", with: " ) ")
-  // TODO bad
+  // TODO: bad
   tmp = tmp.replacingOccurrences(of: "  ", with: " ")
   tmp = tmp.replacingOccurrences(of: "  ", with: " ")
   tmp = tmp.trimmingCharacters(in: .whitespaces)
@@ -85,6 +86,7 @@ func parse(input: String) -> SExpr {
   return s
 }
 
+/// Environment
 public class Environment {
   var dictionary = [String: SExpr]()
   let outer: Environment?
@@ -145,6 +147,11 @@ func global() -> Environment {
   return env
 }
 
+/// evaluate S-Expression
+/// - Parameters:
+///   - sexpr: S-Expression
+///   - env: Environment
+/// - Returns: evaluated value
 public func eval(sexpr: SExpr, env: Environment) -> (result: SExpr?, env: Environment) {
   //    print("eval(\(sexpr), \(env.description))")
   var result: SExpr?
